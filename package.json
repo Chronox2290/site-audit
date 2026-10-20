@@ -1,0 +1,21 @@
+{
+  "name": "site-audit",
+  "version": "1.0.0",
+  "description": "Checks a website at six screen sizes before it ships: broken and dead controls, cut-off text, blurry images, accessibility, page weight and what its 3D costs.",
+  "license": "MIT",
+  "author": "Christian Murphy (https://www.chronox.com.au)",
+  "repository": "github:Chronox2290/site-audit",
+  "homepage": "https://www.chronox.com.au/site-audit",
+  "bin": { "site-audit": "audit.cjs" },
+  "files": ["audit.cjs", "SKILL.md"],
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "axe-core": "^4.13.0",
+    "playwright-core": "^1.64.1"
+  },
+  "scripts": {
+    "demo:images": "python demo/make-images.py demo/bad demo/fixed",
+    "demo:bad": "node demo/serve.cjs demo/bad 4610",
+    "demo:fixed": "node demo/serve.cjs demo/fixed 4611 --compress"
+  }
+}

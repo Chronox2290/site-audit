@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Home</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/min/moment-with-locales.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; color: #1a1a2e; background: #fff; }
+  .promo { background: linear-gradient(90deg, #7c3aed, #db2777); color: #fff; text-align: center; padding: 20px; font-weight: 600; }
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 6%; }
+  .logo { font-weight: 800; font-size: 22px; background: linear-gradient(90deg, #7c3aed, #db2777); -webkit-background-clip: text; color: transparent; }
+  .links a { margin-left: 28px; color: #4b5563; text-decoration: none; font-size: 15px; }
+  .burger { display: none; background: none; border: 0; font-size: 22px; }
+  .cta-small { background: #7c3aed; color: #fff; padding: 10px 18px; border-radius: 999px; text-decoration: none; font-size: 14px; }
+  .hero { text-align: center; padding: 90px 6% 60px; background: radial-gradient(circle at 50% 0%, #ede9fe, #fff 60%); }
+  .badge-wrap { position: relative; height: 150px; max-width: 900px; margin: 0 auto; }
+  .hero h1 { position: absolute; top: 0; left: 0; right: 0; font-size: 56px; line-height: 1.1; font-weight: 800; color: #4c1d95; }
+  .hero .tag { position: absolute; top: 128px; left: 0; right: 0; font-size: 20px; color: #6b7280; }
+  .hero-buttons { margin: 40px 0; }
+  .btn { display: inline-block; padding: 16px 32px; border-radius: 999px; font-weight: 600; font-size: 16px; margin: 6px; border: 0; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: linear-gradient(90deg, #7c3aed, #db2777); color: #fff; box-shadow: 0 10px 30px rgba(124, 58, 237, .4); }
+  .btn-ghost { background: #fff; color: #7c3aed; border: 2px solid #7c3aed; }
+  .hero-img { width: 100%; max-width: 1100px; border-radius: 16px; box-shadow: 0 30px 80px rgba(76, 29, 149, .25); }
+  .engine { padding: 80px 6%; text-align: center; background: #0f0a1e; color: #fff; }
+  .engine h2 { font-size: 40px; margin-bottom: 12px; }
+  .engine p { color: #a1a1aa; margin-bottom: 30px; }
+  #scene { width: 100%; height: 420px; display: block; border-radius: 16px; }
+  .features { padding: 90px 6%; text-align: center; }
+  .features h2 { font-size: 40px; margin-bottom: 50px; }
+  .cards { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
+  .card { width: 320px; height: 210px; overflow: hidden; padding: 30px; border-radius: 20px; background: #faf5ff; box-shadow: 0 10px 40px rgba(124, 58, 237, .12); text-align: left; }
+  .card .icon { font-size: 34px; margin-bottom: 12px; }
+  .card h3 { font-size: 20px; margin-bottom: 8px; }
+  .card p { color: #6b7280; line-height: 1.6; }
+  .stats { display: flex; justify-content: center; gap: 40px; padding: 40px 6%; min-width: 440px; }
+  .stat { text-align: center; }
+  .stat b { display: block; font-size: 36px; color: #7c3aed; }
+  .team { display: flex; gap: 40px; align-items: center; justify-content: center; padding: 80px 6%; flex-wrap: wrap; }
+  .team img { width: 300px; border-radius: 20px; }
+  .team div { max-width: 460px; }
+  .team h2 { font-size: 34px; margin-bottom: 14px; }
+  .quote { padding: 70px 6%; text-align: center; }
+  .quote p { font-size: 22px; color: #c4c4cc; max-width: 760px; margin: 0 auto 14px; font-style: italic; }
+  .quote span { color: #d4d4d8; font-size: 14px; }
+  footer { padding: 40px 6%; background: #faf5ff; display: flex; justify-content: space-between; align-items: center; color: #9ca3af; font-size: 13px; }
+  footer .social a { color: #a78bfa; font-size: 13px; margin-left: 6px; }
+  @media (max-width: 700px) {
+    .links { display: none; }
+    .burger { display: block; }
+    .hero h1 { font-size: 40px; }
+    .card { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">NovaMind AI</div>
+  <div class="links"><a href="#features">Features</a><a href="/pricing">Pricing</a><a href="/about">About</a></div>
+  <button class="burger"><i class="fa fa-bars"></i></button>
+  <a class="cta-small" href="#">Get Started</a>
+</nav>
+
+<section class="hero">
+  <div class="badge-wrap">
+    <h1>Supercharge Your Workflow With AI-Powered Insights</h1>
+    <p class="tag">Unlock the power of next-generation artificial intelligence to transform your business.</p>
+  </div>
+  <div class="hero-buttons">
+    <a class="btn btn-primary" href="#">Get Started Free</a>
+    <button class="btn btn-ghost">Watch Demo</button>
+  </div>
+  <img class="hero-img" src="hero.png">
+</section>
+
+<section class="engine">
+  <h2>Our Neural Engine</h2>
+  <p>Billions of parameters working together in perfect harmony.</p>
+  <canvas id="scene"></canvas>
+</section>
+
+<section class="features" id="features">
+  <h2>Why Choose NovaMind?</h2>
+  <div class="cards">
+    <div class="card"><div class="icon">⚡</div><h3>Lightning Fast</h3><p>Our cutting-edge AI processes your data in milliseconds, delivering actionable insights faster than ever before so your team can focus on what truly matters and scale effortlessly.</p></div>
+    <div class="card"><div class="icon">🧠</div><h3>Smart Automation</h3><p>Leverage machine learning to automate repetitive tasks and unlock new levels of productivity across every department, from marketing to engineering and beyond, seamlessly.</p></div>
+    <div class="card"><div class="icon">🔒</div><h3>Enterprise Security</h3><p>Bank-grade encryption and SOC 2 compliance keep your data safe, secure and private at every step of the journey, giving you complete peace of mind around the clock.</p></div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat"><b>10x</b>Faster</div>
+  <div class="stat"><b>99.9%</b>Uptime</div>
+  <div class="stat"><b>24/7</b>Support</div>
+</section>
+
+<section class="team">
+  <img src="team.png">
+  <div>
+    <h2>Built by Visionaries</h2>
+    <p>Our world-class team of AI researchers and engineers is on a mission to democratize artificial intelligence for businesses of every size.</p>
+  </div>
+</section>
+
+<section class="quote">
+  <p>"NovaMind completely transformed how our team works. It's a total game-changer!"</p>
+  <span>Sarah J., CEO at TechCorp</span>
+</section>
+
+<footer>
+  <div>© 2026 NovaMind AI. All rights reserved.</div>
+  <div class="social"><a href="#"><i class="fab fa-x-twitter"></i></a><a href="#"><i class="fab fa-linkedin"></i></a><a href="#"><i class="fab fa-github"></i></a></div>
+</footer>
+
+<script src="js/chat-widget.js"></script>
+<script>
+  window.analytics.track('page_view');
+</script>
+<script>
+  setTimeout(() => {
+    const b = document.createElement('div');
+    b.className = 'promo';
+    b.textContent = '🎉 New: GPT integration is here! Try it free for 14 days.';
+    document.body.prepend(b);
+  }, 1500);
+</script>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }</script>
+<script type="module">
+  import * as THREE from 'three';
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas });
+  renderer.setPixelRatio(1);
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0f0a1e);
+  const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+  camera.position.set(0, 0, 22);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 2);
+  sun.position.set(5, 8, 10);
+  scene.add(sun);
+  const texture = new THREE.TextureLoader().load('texture.png');
+  for (let i = 0; i < 600; i++) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), new THREE.MeshStandardMaterial({ map: texture, color: new THREE.Color().setHSL(0.75 + Math.random() * 0.15, 0.7, 0.6) }));
+    mesh.position.set((Math.random() - 0.5) * 30, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 10);
+    mesh.rotation.set(Math.random() * 3, Math.random() * 3, 0);
+    scene.add(mesh);
+  }
+  function loop() {
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
+</script>
+</body>
+</html>

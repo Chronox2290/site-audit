@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NovaMind: meeting notes that end in decisions</title>
+<meta name="description" content="Record a meeting and get one page back: what was decided, who owns each action and when it is due. No bot joins your call.">
+<link rel="canonical" href="http://127.0.0.1:4611/">
+<meta property="og:image" content="http://127.0.0.1:4611/team-1440.webp">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="color-scheme" content="light">
+<meta name="darkreader-lock">
+<link rel="stylesheet" href="site.css">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" crossorigin>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" } }</script>
+<script type="module" src="wave.js"></script>
+<script type="module" src="ui.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="wrap bar-in">
+    <a class="mark" href="#top" aria-label="NovaMind, back to top">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M1 11h3l2-6 3 12 3-15 3 15 2-6h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      NovaMind
+    </a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav id="nav" class="nav" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#sample">Sample</a>
+      <a href="#pricing">Pricing</a>
+      <a class="nav-cta" href="#pricing">Start free</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero wrap" id="top">
+    <div class="hero-copy">
+      <p class="eyebrow">Meeting notes, without the note taker</p>
+      <h1>Your meeting already made the decisions. <em>NovaMind writes them down.</em></h1>
+      <p class="lede">Record the call on your own laptop. Before everyone is back at their desk, the team gets one page: what was decided, who owns each action, and when it is due.</p>
+      <div class="actions">
+        <a class="btn btn-ink" href="#pricing">Try it on your next meeting</a>
+        <button class="btn btn-line" type="button" data-open="sample-dialog">Read a sample page</button>
+      </div>
+      <p class="fine">Free for five meetings a month. No bot joins your call.</p>
+    </div>
+    <figure class="stage">
+      <canvas id="wave" aria-label="A 3D waveform of a fourteen minute stand-up, tall where people spoke" role="img"></canvas>
+      <figcaption>
+        <span class="mono">TUE 09:30 · STAND-UP · 14 MIN</span>
+        <span>3 decisions · 5 actions · 2 open questions</span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="how" id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <h2 id="how-h">Three steps, and the second one is not yours</h2>
+      <ol class="steps">
+        <li>
+          <span class="num mono">01</span>
+          <h3>Record where you already are</h3>
+          <p>Press record in the menu bar for Zoom, Meet, Teams or a room with a laptop on the table. Nothing joins the call, so nobody has to admit a stranger.</p>
+        </li>
+        <li>
+          <span class="num mono">02</span>
+          <h3>NovaMind reads the whole conversation</h3>
+          <p>It listens for the moments a group commits: "let's go with", "can you own", "by Friday". Small talk and status updates stay out of the summary.</p>
+        </li>
+        <li>
+          <span class="num mono">03</span>
+          <h3>One page goes to everyone who was there</h3>
+          <p>Decisions first, then actions with owners and dates, then the questions nobody answered. Each line links to the second of audio it came from.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sample wrap" id="sample" aria-labelledby="sample-h">
+    <div class="sample-copy">
+      <h2 id="sample-h">This is the whole product</h2>
+      <p>No dashboard to check and no transcript to scroll. The page on the right came from a fourteen minute stand-up; the names are made up, the shape is exactly what you get.</p>
+    </div>
+    <article class="page" aria-label="Sample meeting page">
+      <header>
+        <p class="mono">Tuesday stand-up · 14 min · 6 people</p>
+        <h3>Ship the importer behind a flag on Thursday</h3>
+      </header>
+      <h4>Decided</h4>
+      <ul>
+        <li><span class="line">Importer ships Thursday behind the <code>bulk-import</code> flag.</span> <span class="t mono">03:12</span></li>
+        <li><span class="line">CSV only for now; Excel waits for customer requests.</span> <span class="t mono">06:40</span></li>
+        <li><span class="line">Support gets a one-page guide before launch.</span> <span class="t mono">11:05</span></li>
+      </ul>
+      <h4>Actions</h4>
+      <ul class="acts">
+        <li><span class="who">Priya</span> <span class="line">Write the flag rollout plan</span> <span class="due mono">Wed</span></li>
+        <li><span class="who">Tom</span> <span class="line">Cap uploads at 50 MB with a clear error</span> <span class="due mono">Wed</span></li>
+        <li><span class="who">Ana</span> <span class="line">Draft the support guide</span> <span class="due mono">Thu</span></li>
+      </ul>
+      <h4>Still open</h4>
+      <ul>
+        <li><span class="line">Who answers import tickets over the weekend?</span> <span class="t mono">12:48</span></li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="about" aria-labelledby="about-h">
+    <div class="wrap about-in">
+      <picture>
+        <source type="image/avif" srcset="team-480.avif 480w, team-960.avif 960w, team-1440.avif 1440w" sizes="(min-width: 981px) 440px, (min-width: 560px) 520px, calc(100vw - 40px)">
+        <img src="team-960.webp" srcset="team-480.webp 480w, team-960.webp 960w, team-1440.webp 1440w" sizes="(min-width: 981px) 440px, (min-width: 560px) 520px, calc(100vw - 40px)" width="960" height="720" loading="lazy" decoding="async" alt="Soft overlapping circles of colour, the pattern on our office wall">
+      </picture>
+      <div>
+        <h2 id="about-h">Built by people who sat through the meetings</h2>
+        <p>We spent years writing the follow-up email nobody read. NovaMind is the follow-up we wanted: short, specific, and sent while the decision is still fresh.</p>
+        <p>Audio is processed and deleted within an hour. The page is all we keep, and you can delete that too.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing wrap" id="pricing" aria-labelledby="pricing-h">
+    <h2 id="pricing-h">Two plans. Start with the free one.</h2>
+    <div class="plans">
+      <div class="plan">
+        <h3>Solo</h3>
+        <p class="price"><b>$0</b> forever</p>
+        <ul><li>Five meetings a month</li><li>Pages for everyone in the meeting</li><li>Audio deleted within an hour</li></ul>
+        <a class="btn btn-line" href="mailto:hello@novamind.example?subject=Solo%20plan">Get the free plan</a>
+      </div>
+      <div class="plan plan-team">
+        <h3>Team</h3>
+        <p class="price"><b>$12</b> per person a month</p>
+        <ul><li>Unlimited meetings</li><li>Actions sent to Linear, Jira or Asana</li><li>Shared library of every decision</li></ul>
+        <a class="btn btn-ink" href="mailto:hello@novamind.example?subject=Team%20plan">Start a 14-day team trial</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <p>NovaMind · Melbourne</p>
+    <a href="mailto:hello@novamind.example">hello@novamind.example</a>
+  </div>
+</footer>
+
+<dialog id="sample-dialog" aria-labelledby="dlg-h">
+  <h2 id="dlg-h">How a line becomes a decision</h2>
+  <p class="quote">"OK, so we're agreed, it goes out Thursday, but behind the flag."</p>
+  <p class="arrow mono">03:12 → Decided</p>
+  <p>Importer ships Thursday behind the <code>bulk-import</code> flag.</p>
+  <form method="dialog"><button class="btn btn-ink" type="submit">Close</button></form>
+</dialog>
+</body>
+</html>
