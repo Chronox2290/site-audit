@@ -53,7 +53,7 @@ node audit.cjs https://example.com out --paths /,/about,/pricing
 |---|---|
 | `--paths /,/about` | Pages to check (default `/`) |
 | `--no-click` | Skip pressing every button |
-| `--no-efficiency` | Skip the weight, CPU and 3D pass (about 30 s a page) |
+| `--no-efficiency` | Skip the weight, CPU, 3D and video passes (about 40 s a page) |
 | `--ignore file` | Known exceptions, default `.site-audit-ignore.json` in the current folder |
 | `--browser msedge` | Pick the browser: `msedge`, `chrome` or `chromium` |
 
@@ -87,6 +87,7 @@ Every threshold is listed in [SKILL.md](SKILL.md).
 - **Who can use it:** axe accessibility rules (serious and critical), tap targets under 24 px, text under 11 px, alt text, heading order, pinch zoom.
 - **How heavy it is:** page weight, files sent uncompressed, old image formats, unused JS and CSS, render-blocking files, blocking time on a slowed phone, CPU while idle.
 - **What the 3D costs:** draw calls and triangles per frame, texture sizes and memory, drawing while idle, drawing while scrolled away, canvases drawn above 2x on a phone. Works with any WebGL library.
+- **Whether video survives the trip:** each video's bit depth, colour range and bitrate (with ffprobe installed), and whether the picture on screen matches the frame the browser decoded. A WebGL texture or filter that washes dark scenes out into blocks shows up here.
 - **Search and sharing:** title and description length, canonical link, share image, favicon, robots.txt and sitemap.
 
 ## What it can't judge

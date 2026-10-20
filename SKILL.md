@@ -1,6 +1,6 @@
 ---
 name: site-audit
-description: Full automated quality audit of a website before and after every deploy - errors, broken requests and links, sideways scroll, blurry or oversized images, low-density canvases (jagged 3D), clipped and overlapping text, tap targets, small text, alt text, headings, layout shift, axe accessibility, meta tags and pinch zoom, every button and "#" link pressed once to catch controls that do nothing, plus measured efficiency (page weight, compression, unused JS and CSS, render-blocking head files, blocking time on a slowed phone, idle CPU) and 3D cost (draw calls and triangles per frame, texture sizes and memory, rendering while idle or scrolled away). Use on every site change before it ships and on the live URL after, instead of spot-checking by eye.
+description: Full automated quality audit of a website before and after every deploy - errors, broken requests and links, sideways scroll, blurry or oversized images, low-density canvases (jagged 3D), clipped and overlapping text, tap targets, small text, alt text, headings, layout shift, axe accessibility, meta tags and pinch zoom, every button and "#" link pressed once to catch controls that do nothing, plus measured efficiency (page weight, compression, unused JS and CSS, render-blocking head files, blocking time on a slowed phone, idle CPU) and 3D cost (draw calls and triangles per frame, texture sizes and memory, rendering while idle or scrolled away), and video (bit depth, colour range and bitrate of each file, and whether the picture on screen matches the decoded frame). Use on every site change before it ships and on the live URL after, instead of spot-checking by eye.
 ---
 
 # Site audit
@@ -47,7 +47,16 @@ Once per page, after the width checks. Pass 1 loads the page at 1440 px with the
 | Largest canvas keeps drawing after it is scrolled off screen (counted for that canvas only) | any | |
 | Canvas backing store above 2x its CSS size on the 3.5x phone | each | |
 
-Always printed as INFO: transfer by type and the five largest files, unused JS and CSS by file, first paint, largest paint and long tasks at 4x CPU, the idle main thread share, and per-frame draw calls (median, p95, max), triangles, texture count, size and memory, and the three.js revision.
+Pass 3 loads the page at 1440 px again for video. Every `<video>` with a source (one set to preload nothing is asked for its metadata) has its file fetched and read with ffprobe when ffprobe is on the PATH; without it the format rows are skipped and an INFO line says so. Each visible video at least 120 px wide is then played muted for about two seconds, and the frame the browser decoded is compared with the screenshot of the same spot, which shows anything drawn over it (a WebGL canvas, a filter, an overlay).
+
+| Video check | WARN | FAIL |
+|---|---|---|
+| 10 or 12-bit pixel format (some phones and WebGL video textures show dark scenes as bright blocks) | each | |
+| Full (pc) colour range | each | |
+| Bitrate under 0.02 bits per pixel per frame (dark or busy scenes block up) | each | |
+| Mean brightness on screen differs from the decoded frame by over 25 of 255 | each, with `<page>-video-<n>-decoded.png` and `-screen.png` saved | |
+
+Always printed as INFO: transfer by type and the five largest files, unused JS and CSS by file, first paint, largest paint and long tasks at 4x CPU, the idle main thread share, and per-frame draw calls (median, p95, max), triangles, texture count, size and memory, and the three.js revision; for each video, codec, size, pixel format, range and bitrate, and the on-screen against decoded brightness.
 
 How to read them:
 - Draw calls: each separate mesh and material is a call. Hundreds of copies of one shape belong in an `InstancedMesh` (one call) or a merged geometry.

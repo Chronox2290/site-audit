@@ -22,7 +22,9 @@
 // paint and total blocking time on a 412 px phone with the CPU slowed 4x.
 // WebGL, on any library: draw calls and triangles per frame, texture sizes
 // and memory, drawing while idle or scrolled away, and canvases drawn above
-// 2x on a phone. Numbers also go to <out-dir>/efficiency.json.
+// 2x on a phone. Video: each file's codec, bit depth, colour range and
+// bitrate (with ffprobe), and whether the picture on screen matches the
+// decoded frame. Numbers also go to <out-dir>/efficiency.json.
 const path = require('path');
 const fs = require('fs');
 // playwright or playwright-core, installed next to this file or globally
@@ -231,6 +233,116 @@ const cssUsed = (e) => [(e.text || '').length, e.ranges.reduce((n, r) => n + r.e
 const taskSeconds = async (cdp) => (await cdp.send('Performance.getMetrics')).metrics.find((x) => x.name === 'TaskDuration')?.value || 0;
 
 // ---- efficiency and 3D cost of one page ----
+// ---- video: the files a page plays and what reaches the screen ----
+// ffprobe is optional: without it the format checks are skipped and said so.
+let FFPROBE = null;
+const ffprobe = (file) => {
+  const { execFileSync } = require('child_process');
+  if (FFPROBE === null) { try { execFileSync('ffprobe', ['-version'], { stdio: 'ignore' }); FFPROBE = true; } catch { FFPROBE = false; } }
+  if (!FFPROBE) return null;
+  try {
+    const j = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name,width,height,pix_fmt,color_range,r_frame_rate:format=bit_rate', '-of', 'json', file]).toString());
+    return j.streams && j.streams[0] ? { ...j.streams[0], bit_rate: +(j.format || {}).bit_rate || 0 } : null;
+  } catch { return null; }
+};
+const frameRate = (r) => { const [a, b] = String(r || '30/1').split('/').map(Number); return b ? a / b : a || 30; };
+// mean brightness (0-255) of an image given as a data URL, worked out in the page
+const meanLuma = (src) => new Promise((res) => {
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas');
+    c.width = 160;
+    c.height = Math.max(1, Math.round(160 * img.height / img.width));
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0, c.width, c.height);
+    const d = g.getImageData(0, 0, c.width, c.height).data;
+    let s = 0;
+    for (let i = 0; i < d.length; i += 4) s += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    res(s / (d.length / 4));
+  };
+  img.onerror = () => res(null);
+  img.src = src;
+});
+const slug = (p) => (p === '/' ? 'home' : p.replace(/\W+/g, '-').replace(/^-|-$/g, ''));
+
+async function videoPass(browser, p, m) {
+  const where = `${p} video`;
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE + p, { waitUntil: 'networkidle', timeout: 90000 });
+  await page.waitForTimeout(3000);
+  // a video set to preload nothing has no source chosen yet: ask for its metadata
+  const vids = await page.evaluate(async () => {
+    const all = [...document.querySelectorAll('video')];
+    for (const v of all) if (!v.currentSrc) { v.preload = 'metadata'; v.load(); }
+    await new Promise((r) => setTimeout(r, 1500));
+    return all.map((v, i) => {
+      v.setAttribute('data-audit-video', i);
+      const r = v.getBoundingClientRect();
+      // a video drawn over by a canvas is still compared; one hidden outright is not
+      const hidden = getComputedStyle(v).visibility === 'hidden' || getComputedStyle(v).display === 'none';
+      return { i, src: v.currentSrc, shownW: Math.round(r.width), shownH: Math.round(r.height), hidden };
+    });
+  });
+  m.video = [];
+  const seen = new Set();
+  for (const v of vids) {
+    if (!v.src || seen.has(v.src)) continue;
+    seen.add(v.src);
+    const n = seen.size;
+    const row = { src: short(v.src), shown: `${v.shownW}x${v.shownH}` };
+    const tmp = path.join(OUT, `video-${n}${path.extname(new URL(v.src).pathname) || '.bin'}`);
+    try { fs.writeFileSync(tmp, await (await page.request.get(v.src)).body()); } catch { add('WARN', where, 'video file did not download', short(v.src)); continue; }
+    const f = ffprobe(tmp);
+    fs.rmSync(tmp, { force: true });
+    if (f) {
+      const bpp = f.bit_rate / (f.width * f.height * frameRate(f.r_frame_rate));
+      Object.assign(row, { codec: f.codec_name, size: `${f.width}x${f.height}`, pix: f.pix_fmt, range: f.color_range, mbps: +(f.bit_rate / 1e6).toFixed(2), bpp: +bpp.toFixed(3) });
+      add('INFO', where, 'video file', `${short(v.src)}: ${f.codec_name} ${f.width}x${f.height} ${f.pix_fmt} ${f.color_range || ''} ${(f.bit_rate / 1e6).toFixed(2)} Mbps, shown ${v.shownW}x${v.shownH}`);
+      if (/1[02](le|be)?$/.test(f.pix_fmt || '')) add('WARN', where, '10 or 12-bit video (decodes wrongly on some phones and through WebGL; encode 8-bit yuv420p)', `${f.pix_fmt} ${short(v.src)}`);
+      if ((f.pix_fmt || '').startsWith('yuvj') || f.color_range === 'pc') add('WARN', where, 'full-range video (encode tv range)', short(v.src));
+      if (bpp < 0.02) add('WARN', where, 'video bitrate too low for its size (dark or busy scenes block up)', `${(f.bit_rate / 1e6).toFixed(2)} Mbps for ${f.width}x${f.height}, ${bpp.toFixed(3)} bits per pixel, ${short(v.src)}`);
+    } else if (FFPROBE === false && n === 1) add('INFO', where, 'ffprobe not found: video format and bitrate checks skipped');
+    // what reaches the screen, against the frame the browser decoded
+    if (v.shownW >= 120 && !v.hidden) {
+      const fr = await page.evaluate(async (i) => {
+        const el = document.querySelector(`[data-audit-video="${i}"]`);
+        el.muted = true;
+        try { await Promise.race([el.play(), new Promise((r) => setTimeout(r, 3000))]); } catch { return null; }
+        await new Promise((r) => setTimeout(r, 1800));
+        el.pause();
+        if (!el.videoWidth) return null;
+        await new Promise((r) => setTimeout(r, 500));
+        const c = document.createElement('canvas');
+        c.width = 320;
+        c.height = Math.round(320 * el.videoHeight / el.videoWidth);
+        try { c.getContext('2d').drawImage(el, 0, 0, c.width, c.height); return c.toDataURL('image/png'); } catch { return null; }
+      }, v.i);
+      if (fr) {
+        await page.locator(`[data-audit-video="${v.i}"]`).scrollIntoViewIfNeeded().catch(() => {});
+        await page.waitForTimeout(500);
+        const clip = await page.evaluate((i) => { const r = document.querySelector(`[data-audit-video="${i}"]`).getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }, v.i);
+        const buf = clip.width > 4 && clip.height > 4 ? await page.screenshot({ clip }).catch(() => null) : null;
+        if (buf) {
+          const decoded = await page.evaluate(meanLuma, fr);
+          const screen = await page.evaluate(meanLuma, 'data:image/png;base64,' + buf.toString('base64'));
+          if (decoded != null && screen != null) {
+            Object.assign(row, { decodedLuma: Math.round(decoded), screenLuma: Math.round(screen) });
+            add('INFO', where, 'video on screen against its decoded frame', `brightness ${Math.round(screen)} on screen, ${Math.round(decoded)} decoded, ${short(v.src)}`);
+            if (Math.abs(screen - decoded) > 25) {
+              fs.writeFileSync(path.join(OUT, `${slug(p)}-video-${n}-decoded.png`), Buffer.from(fr.split(',')[1], 'base64'));
+              fs.writeFileSync(path.join(OUT, `${slug(p)}-video-${n}-screen.png`), buf);
+              add('WARN', where, 'video on screen does not match its decoded frame (a WebGL texture, filter or overlay changes it; compare the two PNGs)', `screen brightness ${Math.round(screen)} against ${Math.round(decoded)} decoded, ${short(v.src)}`);
+            }
+          }
+        }
+      }
+    }
+    m.video.push(row);
+  }
+  await ctx.close();
+}
+
 async function efficiency(browser, p) {
   const where = `${p} efficiency`, gw = `${p} 3d`;
   const m = { path: p };
@@ -373,6 +485,9 @@ async function efficiency(browser, p) {
     for (const c of t.canvases) if (c.ratio > 2.05) add('WARN', `${p} 3d`, 'canvas drawn above 2x on a 3.5x phone (fill cost with no visible gain)', `${c.ratio}x, ${c.backing}`);
     await ctx.close();
   }
+
+  // pass 3: every video's file and what reaches the screen
+  await videoPass(browser, p, m);
   metrics.push(m);
 }
 
