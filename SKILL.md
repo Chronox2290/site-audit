@@ -1,6 +1,6 @@
 ---
 name: site-audit
-description: Full automated quality audit of a website before and after every deploy - errors, broken requests and links, sideways scroll, blurry or oversized images, low-density canvases (jagged 3D), clipped and overlapping text, tap targets, small text, alt text, headings, layout shift, axe accessibility, meta tags and pinch zoom, every button and "#" link pressed once to catch controls that do nothing, plus measured efficiency (page weight, compression, unused JS and CSS, render-blocking head files, blocking time on a slowed phone, idle CPU) and 3D cost (draw calls and triangles per frame, texture sizes and memory, rendering while idle or scrolled away), and video (bit depth, colour range and bitrate of each file, and whether the picture on screen matches the decoded frame). Use on every site change before it ships and on the live URL after, instead of spot-checking by eye.
+description: Full automated quality audit of a website before and after every deploy - errors, broken requests and links, sideways scroll, blurry or oversized images, low-density canvases (jagged 3D), clipped and overlapping text, tap targets, small text, alt text, headings, layout shift, axe accessibility, meta tags and pinch zoom, every button and "#" link pressed once to catch controls that do nothing, plus measured efficiency (page weight, compression, unused JS and CSS, render-blocking head files, blocking time on a slowed phone, idle CPU) and 3D cost (draw calls and triangles per frame, texture sizes and memory, rendering while idle or scrolled away), and video (bit depth, colour range and bitrate of each file, and whether the picture on screen matches the decoded frame), and whether the layout or a canvas resizes while a tablet toolbar slides away on scroll. Use on every site change before it ships and on the live URL after, instead of spot-checking by eye.
 ---
 
 # Site audit
@@ -55,6 +55,8 @@ Pass 3 loads the page at 1440 px again for video. Every `<video>` with a source 
 | Full (pc) colour range | each | |
 | Bitrate under 0.02 bits per pixel per frame (dark or busy scenes block up) | each | |
 | Mean brightness on screen differs from the decoded frame by over 25 of 255 | each, with `<page>-video-<n>-decoded.png` and `-screen.png` saved | |
+
+Tablet toolbar, once per page (also with `--no-efficiency`): at 1180 px with touch on, the window's height changes by 64 px three times, as a tablet browser's toolbar does on scroll. WARN when any canvas changes size (it is cleared, so it flashes blank) or when page boxes outside fixed backdrops resize. Headless Chromium moves `svh` with the window, so a layout fixed with `100svh` alone still warns here; ignoring small height-only changes on `(pointer: coarse)` passes both.
 
 Always printed as INFO: transfer by type and the five largest files, unused JS and CSS by file, first paint, largest paint and long tasks at 4x CPU, the idle main thread share, and per-frame draw calls (median, p95, max), triangles, texture count, size and memory, and the three.js revision; for each video, codec, size, pixel format, range and bitrate, and the on-screen against decoded brightness.
 

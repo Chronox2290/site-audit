@@ -88,6 +88,7 @@ Every threshold is listed in [SKILL.md](SKILL.md).
 - **How heavy it is:** page weight, files sent uncompressed, old image formats, unused JS and CSS, render-blocking files, blocking time on a slowed phone, CPU while idle.
 - **What the 3D costs:** draw calls and triangles per frame, texture sizes and memory, drawing while idle, drawing while scrolled away, canvases drawn above 2x on a phone. Works with any WebGL library.
 - **Whether video survives the trip:** each video's bit depth, colour range and bitrate (with ffprobe installed), and whether the picture on screen matches the frame the browser decoded. A WebGL texture or filter that washes dark scenes out into blocks shows up here.
+- **Whether the page holds still on a tablet:** a tablet or phone browser's toolbar slides away as you scroll, so the window gets taller and shorter. The audit changes the window's height the same way and reports any canvas or page block that resizes with it. A canvas that resizes is cleared, so it flashes blank on every scroll. Headless browsers have no toolbar, so nothing else catches this.
 - **Search and sharing:** title and description length, canonical link, share image, favicon, robots.txt and sitemap.
 
 ## What it can't judge

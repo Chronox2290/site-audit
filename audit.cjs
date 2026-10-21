@@ -25,6 +25,10 @@
 // 2x on a phone. Video: each file's codec, bit depth, colour range and
 // bitrate (with ffprobe), and whether the picture on screen matches the
 // decoded frame. Numbers also go to <out-dir>/efficiency.json.
+//
+// Tablet toolbar, once per page: the window's height is changed as a tablet
+// browser's toolbar does on scroll, and any canvas or page box that resizes
+// with it is reported.
 const path = require('path');
 const fs = require('fs');
 // playwright or playwright-core, installed next to this file or globally
@@ -343,6 +347,48 @@ async function videoPass(browser, p, m) {
   await ctx.close();
 }
 
+// ---- tablet toolbar: a phone or tablet browser's toolbar slides away on
+// scroll and back, so the window's height changes by a few dozen px while its
+// width stays. A layout sized from innerHeight or vh then resizes on every
+// scroll, and a resized canvas is cleared (it flashes blank). Headless
+// browsers have no toolbar, so nothing else here would see it.
+async function toolbarPass(browser, p) {
+  const where = `${p} tablet-toolbar`;
+  const W = 1180, H = 820, BAR = 64;
+  const ctx = await browser.newContext({ viewport: { width: W, height: H - BAR }, hasTouch: true, deviceScaleFactor: 2 });
+  const page = await ctx.newPage();
+  await page.goto(BASE + p, { waitUntil: 'networkidle', timeout: 60000 });
+  await page.waitForTimeout(6000);
+  await page.evaluate(() => {
+    window.__tb = 0;
+    new MutationObserver((ms) => { for (const m of ms) if (m.target.tagName === 'CANVAS') window.__tb++; }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['width', 'height'] });
+  });
+  // large boxes in the page's flow; a fixed full-window backdrop follows the
+  // window by design (and on a real tablet vh is the large viewport)
+  const boxes = () => page.evaluate(() => [...document.querySelectorAll('body *')].filter((e) => {
+    for (let n = e; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).position === 'fixed') return false;
+    const r = e.getBoundingClientRect();
+    return r.width * r.height > 40000;
+  }).slice(0, 400).map((e) => { const r = e.getBoundingClientRect(); return `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${e.className && typeof e.className === 'string' ? '.' + e.className.split(' ')[0] : ''} ${Math.round(r.width)}x${Math.round(r.height)}`; }));
+  const before = await boxes();
+  for (let i = 0; i < 3; i++) {
+    await page.mouse.wheel(0, 300);
+    await page.setViewportSize({ width: W, height: H });
+    await page.waitForTimeout(400);
+    await page.mouse.wheel(0, -300);
+    await page.setViewportSize({ width: W, height: H - BAR });
+    await page.waitForTimeout(400);
+  }
+  await page.setViewportSize({ width: W, height: H });
+  await page.waitForTimeout(600);
+  const after = await boxes();
+  const canvas = await page.evaluate(() => window.__tb);
+  const moved = before.map((b, i) => (after[i] !== b ? `${b} to ${after[i]}` : null)).filter(Boolean);
+  if (canvas) add('WARN', where, 'canvas resized while a tablet toolbar slid away and back (a resized canvas is cleared, so it flashes blank on scroll)', `${canvas} size changes`);
+  if (moved.length) add('WARN', where, 'layout follows the window height while a tablet toolbar slides (size from 100svh, or ignore small height-only changes on touch screens)', `${moved.length} boxes: ${moved.slice(0, 4).join(' | ')}`);
+  await ctx.close();
+}
+
 async function efficiency(browser, p) {
   const where = `${p} efficiency`, gw = `${p} 3d`;
   const m = { path: p };
@@ -610,6 +656,7 @@ async function efficiency(browser, p) {
       await ctx.close();
     }
   }
+  for (const p of PATHS) await toolbarPass(browser, p).catch((e) => add('WARN', `${p} tablet-toolbar`, 'toolbar pass did not finish', String(e).slice(0, 200)));
   if (EFFICIENCY) for (const p of PATHS) await efficiency(browser, p).catch((e) => add('WARN', `${p} efficiency`, 'efficiency pass did not finish', String(e).slice(0, 200)));
   await browser.close();
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(findings, null, 1));
